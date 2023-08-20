@@ -4,6 +4,10 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var imageVew: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
+    // счетчик текущего вопроса
+    private var currentQuestionIndex: Int = 0
+    // счетчик правильных ответов
+    private var correctAnswers: Int = 0
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -17,6 +21,15 @@ final class MovieQuizViewController: UIViewController {
     @IBAction private func noButtonClicked(_ sender: Any) {
     }
     
+    // функция конвертирования модели QuizQuestion в QuizStepViewModel
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+        let questionStep = QuizStepViewModel(
+            image: UIImage(named: model.image) ?? UIImage(),
+            question: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questions.count)")
+        return questionStep
+    }
+    
     
 }
 
@@ -24,14 +37,14 @@ final class MovieQuizViewController: UIViewController {
 
 // MARK: ViewModels
 // для состояния "Вопрос показан"
-struct QuizStepModel {
+struct QuizStepViewModel {
     let image: UIImage
     let question: String
     let questionNumber: String
 }
 
 // для состояния "Результат квиза"
-struct QuizREsultViewModel {
+struct QuizResultViewModel {
     let title: String
     let text: String
     let buttonText: String
