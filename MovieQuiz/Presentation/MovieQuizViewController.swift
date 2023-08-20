@@ -30,6 +30,14 @@ final class MovieQuizViewController: UIViewController {
         return questionStep
     }
     
+    // приватный метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
+    private func show(quiz step: QuizStepViewModel) {
+        imageVew.image = step.image
+        textLabel.text = step.question
+        counterLabel.text = step.questionNumber
+        
+    }
+    
     
 }
 
