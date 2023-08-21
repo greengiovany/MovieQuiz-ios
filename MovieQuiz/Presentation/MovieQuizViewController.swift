@@ -14,11 +14,17 @@ final class MovieQuizViewController: UIViewController {
         super.viewDidLoad()
     }
     
-    // yes/no button actions
+    /// yes button action
     @IBAction private func yesButtonClicked(_ sender: Any) {
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = true
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
-    
+    // no button action
     @IBAction private func noButtonClicked(_ sender: Any) {
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = false
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
     // функция конвертирования модели QuizQuestion в QuizStepViewModel
@@ -35,8 +41,30 @@ final class MovieQuizViewController: UIViewController {
         imageVew.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
-        
     }
+    
+    // приватный метод, который меняет цвет рамки
+    private func showAnswerResult(isCorrect: Bool) {
+        imageVew.layer.masksToBounds = true
+        imageVew.layer.borderWidth = 8
+        imageVew.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+        imageVew.layer.cornerRadius = 20
+        
+//        if isCorrect {
+//            imageVew.layer.masksToBounds = true
+//            imageVew.layer.borderWidth = 8
+//            imageVew.layer.borderColor = UIColor(named: "YP Green")?.cgColor
+//            imageVew.layer.cornerRadius = 8
+//
+//        } else {
+//            imageVew.layer.masksToBounds = true
+//            imageVew.layer.borderWidth = 8
+//            imageVew.layer.borderColor = UIColor(named: "YP Red")?.cgColor
+//            imageVew.layer.cornerRadius = 8
+//        }
+    }
+    
+    
     
     
 }
