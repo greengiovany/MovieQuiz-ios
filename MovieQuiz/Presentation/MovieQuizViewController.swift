@@ -10,7 +10,7 @@ final class MovieQuizViewController: UIViewController {
     private var correctAnswers: Int = 0
     
     
-    // MARK: ViewModels
+    // MARK: - ViewModels
     // для состояния "Вопрос показан"
     struct QuizStepViewModel {
         let image: UIImage
@@ -31,7 +31,7 @@ final class MovieQuizViewController: UIViewController {
         let correctAnswer: Bool
     }
 
-    // MARK: Mocks
+    // MARK: - Mocks
     private let questions: [QuizQuestion] = [
         QuizQuestion(image: "The Godfather",
                      text: "Рейтинг этого фильма больше чем 6?",
@@ -159,8 +159,10 @@ final class MovieQuizViewController: UIViewController {
                 title: "Этот раунд окончен!",
                 text: text,
                 buttonText: "Сыграть ещё раз")
+            imageVew.layer.borderColor = UIColor(white: 1, alpha: 0).cgColor
             show(quiz: viewModel)
         } else {
+            imageVew.layer.borderColor = UIColor(white: 1, alpha: 0).cgColor
             currentQuestionIndex += 1
             
             let nextQuestion = questions[currentQuestionIndex]
@@ -175,61 +177,6 @@ final class MovieQuizViewController: UIViewController {
 }
 
 
-
-//// MARK: ViewModels
-//// для состояния "Вопрос показан"
-//struct QuizStepViewModel {
-//    let image: UIImage
-//    let question: String
-//    let questionNumber: String
-//}
-//
-//// для состояния "Результат квиза"
-//struct QuizResultsViewModel {
-//    let title: String
-//    let text: String
-//    let buttonText: String
-//}
-//
-//struct QuizQuestion {
-//    let image: String
-//    let text: String
-//    let correctAnswer: Bool
-//}
-//
-//// MARK: Mocks
-//private let questions: [QuizQuestion] = [
-//    QuizQuestion(image: "The Godfather",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: true),
-//    QuizQuestion(image: "The Dark Knight",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: true),
-//    QuizQuestion(image: "Kill Bill",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: true),
-//    QuizQuestion(image: "The Avengers",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: true),
-//    QuizQuestion(image: "Deadpool",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: true),
-//    QuizQuestion(image: "The Green Knight",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: true),
-//    QuizQuestion(image: "Old",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: false),
-//    QuizQuestion(image: "The Ice Age Adventures of Buck Wild",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: false),
-//    QuizQuestion(image: "Tesla",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: false),
-//    QuizQuestion(image: "Vivarium",
-//                 text: "Рейтинг этого фильма больше чем 6?",
-//                 correctAnswer: false)
-//]
 /*
  Mock-данные
  
