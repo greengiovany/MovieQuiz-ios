@@ -9,12 +9,72 @@ final class MovieQuizViewController: UIViewController {
     // счетчик правильных ответов
     private var correctAnswers: Int = 0
     
+    
+    // MARK: ViewModels
+    // для состояния "Вопрос показан"
+    struct QuizStepViewModel {
+        let image: UIImage
+        let question: String
+        let questionNumber: String
+    }
+
+    // для состояния "Результат квиза"
+    struct QuizResultsViewModel {
+        let title: String
+        let text: String
+        let buttonText: String
+    }
+
+    struct QuizQuestion {
+        let image: String
+        let text: String
+        let correctAnswer: Bool
+    }
+
+    // MARK: Mocks
+    private let questions: [QuizQuestion] = [
+        QuizQuestion(image: "The Godfather",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: true),
+        QuizQuestion(image: "The Dark Knight",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: true),
+        QuizQuestion(image: "Kill Bill",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: true),
+        QuizQuestion(image: "The Avengers",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: true),
+        QuizQuestion(image: "Deadpool",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: true),
+        QuizQuestion(image: "The Green Knight",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: true),
+        QuizQuestion(image: "Old",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: false),
+        QuizQuestion(image: "The Ice Age Adventures of Buck Wild",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: false),
+        QuizQuestion(image: "Tesla",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: false),
+        QuizQuestion(image: "Vivarium",
+                     text: "Рейтинг этого фильма больше чем 6?",
+                     correctAnswer: false)
+    ]
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let fisrtQuestion = questions[currentQuestionIndex]
+        let firstViewModel = convert(model: fisrtQuestion)
+        show(quiz: firstViewModel)
     }
     
-    /// yes button action
+    // yes button action
     @IBAction private func yesButtonClicked(_ sender: Any) {
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = true
@@ -36,95 +96,140 @@ final class MovieQuizViewController: UIViewController {
         return questionStep
     }
     
-    // приватный метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
+    // приватный метод вывода на экран вопроса
     private func show(quiz step: QuizStepViewModel) {
         imageVew.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
     }
     
+    // MARK: Show Popup and Reset Result
+    // приватный метод показа результата
+    private func show(quiz result: QuizResultsViewModel) {
+        // создаём объекты всплывающего окна
+        let alert = UIAlertController(
+            title: result.title,
+            message: result.text,
+            preferredStyle: .alert)
+        
+        // константа с кнопкой для системного алерта
+        let action = UIAlertAction(title: "Сыграть ещё раз", style: .default) { _ in
+            
+            // обнуляем индекс и результат по прошлому раунду
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            
+            // заново показываем первый вопрос
+            let firstQuestion = self.questions[self.currentQuestionIndex]
+            let viewModel = self.convert(model: firstQuestion)
+            
+            self.show(quiz: viewModel)
+        }
+        
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    
+    
     // приватный метод, который меняет цвет рамки
     private func showAnswerResult(isCorrect: Bool) {
         imageVew.layer.masksToBounds = true
         imageVew.layer.borderWidth = 8
         imageVew.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+        
+        if isCorrect {
+            correctAnswers += 1
+        }
+        
         imageVew.layer.cornerRadius = 20
         
-//        if isCorrect {
-//            imageVew.layer.masksToBounds = true
-//            imageVew.layer.borderWidth = 8
-//            imageVew.layer.borderColor = UIColor(named: "YP Green")?.cgColor
-//            imageVew.layer.cornerRadius = 8
-//
-//        } else {
-//            imageVew.layer.masksToBounds = true
-//            imageVew.layer.borderWidth = 8
-//            imageVew.layer.borderColor = UIColor(named: "YP Red")?.cgColor
-//            imageVew.layer.cornerRadius = 8
-//        }
+        // запускаем задачу через 1 секунду c помощью диспетчера задач
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.showNextQuestionOrResult()
+        }
+    }
+    
+    // MARK: Transition to next question or result
+    // приватный метод, который содержит логику перехода в один из сценариев
+    private func showNextQuestionOrResult() {
+        if currentQuestionIndex == questions.count - 1 {
+            let text = "Ваш результат: \(correctAnswers)/10"
+            let viewModel = QuizResultsViewModel(
+                title: "Этот раунд окончен!",
+                text: text,
+                buttonText: "Сыграть ещё раз")
+            show(quiz: viewModel)
+        } else {
+            currentQuestionIndex += 1
+            
+            let nextQuestion = questions[currentQuestionIndex]
+            let viewModel = convert(model: nextQuestion)
+            
+            show(quiz: viewModel)
+        }
     }
     
     
     
-    
 }
 
 
 
-// MARK: ViewModels
-// для состояния "Вопрос показан"
-struct QuizStepViewModel {
-    let image: UIImage
-    let question: String
-    let questionNumber: String
-}
-
-// для состояния "Результат квиза"
-struct QuizResultViewModel {
-    let title: String
-    let text: String
-    let buttonText: String
-}
-
-struct QuizQuestion {
-    let image: String
-    let text: String
-    let correctAnswer: Bool
-}
-
-// MARK: Mocks
-private let questions: [QuizQuestion] = [
-    QuizQuestion(image: "The Godfather",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: true),
-    QuizQuestion(image: "The Dark Knight",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: true),
-    QuizQuestion(image: "Kill Bill",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: true),
-    QuizQuestion(image: "The Avengers",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: true),
-    QuizQuestion(image: "Deadpool",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: true),
-    QuizQuestion(image: "The Green Knight",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: true),
-    QuizQuestion(image: "Old",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: false),
-    QuizQuestion(image: "The Ice Age Adventures of Buck Wild",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: false),
-    QuizQuestion(image: "Tesla",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: false),
-    QuizQuestion(image: "Vivarium",
-                 text: "Рейтинг этого фильма больше чем 6?",
-                 correctAnswer: false)
-]
+//// MARK: ViewModels
+//// для состояния "Вопрос показан"
+//struct QuizStepViewModel {
+//    let image: UIImage
+//    let question: String
+//    let questionNumber: String
+//}
+//
+//// для состояния "Результат квиза"
+//struct QuizResultsViewModel {
+//    let title: String
+//    let text: String
+//    let buttonText: String
+//}
+//
+//struct QuizQuestion {
+//    let image: String
+//    let text: String
+//    let correctAnswer: Bool
+//}
+//
+//// MARK: Mocks
+//private let questions: [QuizQuestion] = [
+//    QuizQuestion(image: "The Godfather",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: true),
+//    QuizQuestion(image: "The Dark Knight",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: true),
+//    QuizQuestion(image: "Kill Bill",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: true),
+//    QuizQuestion(image: "The Avengers",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: true),
+//    QuizQuestion(image: "Deadpool",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: true),
+//    QuizQuestion(image: "The Green Knight",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: true),
+//    QuizQuestion(image: "Old",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: false),
+//    QuizQuestion(image: "The Ice Age Adventures of Buck Wild",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: false),
+//    QuizQuestion(image: "Tesla",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: false),
+//    QuizQuestion(image: "Vivarium",
+//                 text: "Рейтинг этого фильма больше чем 6?",
+//                 correctAnswer: false)
+//]
 /*
  Mock-данные
  
