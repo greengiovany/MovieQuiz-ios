@@ -9,6 +9,8 @@ final class MovieQuizViewController: UIViewController {
     // счетчик правильных ответов
     private var correctAnswers: Int = 0
     
+    @IBOutlet weak var noButton: UIButton!
+    @IBOutlet weak var yesButton: UIButton!
     
     // MARK: - ViewModels
     // для состояния "Вопрос показан"
@@ -17,20 +19,20 @@ final class MovieQuizViewController: UIViewController {
         let question: String
         let questionNumber: String
     }
-
+    
     // для состояния "Результат квиза"
     struct QuizResultsViewModel {
         let title: String
         let text: String
         let buttonText: String
     }
-
+    
     struct QuizQuestion {
         let image: String
         let text: String
         let correctAnswer: Bool
     }
-
+    
     // MARK: - Mocks
     private let questions: [QuizQuestion] = [
         QuizQuestion(image: "The Godfather",
@@ -79,12 +81,14 @@ final class MovieQuizViewController: UIViewController {
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = true
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        yesButton.isEnabled = false
     }
     // no button action
     @IBAction private func noButtonClicked(_ sender: Any) {
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = false
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        noButton.isEnabled = false
     }
     
     // функция конвертирования модели QuizQuestion в QuizStepViewModel
@@ -130,8 +134,6 @@ final class MovieQuizViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
-    
-    
     // приватный метод, который меняет цвет рамки
     private func showAnswerResult(isCorrect: Bool) {
         imageVew.layer.masksToBounds = true
@@ -153,6 +155,9 @@ final class MovieQuizViewController: UIViewController {
     // MARK: Transition to next question or result
     // приватный метод, который содержит логику перехода в один из сценариев
     private func showNextQuestionOrResult() {
+        yesButton.isEnabled = true
+        noButton.isEnabled = true
+        
         if currentQuestionIndex == questions.count - 1 {
             let text = "Ваш результат: \(correctAnswers)/10"
             let viewModel = QuizResultsViewModel(
@@ -171,72 +176,4 @@ final class MovieQuizViewController: UIViewController {
             show(quiz: viewModel)
         }
     }
-    
-    
-    
 }
-
-
-/*
- Mock-данные
- 
- 
- Картинка: The Godfather
- Настоящий рейтинг: 9,2
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Dark Knight
- Настоящий рейтинг: 9
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Kill Bill
- Настоящий рейтинг: 8,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Avengers
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Deadpool
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Green Knight
- Настоящий рейтинг: 6,6
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Old
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: The Ice Age Adventures of Buck Wild
- Настоящий рейтинг: 4,3
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: Tesla
- Настоящий рейтинг: 5,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: Vivarium
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- */
