@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var imageVew: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
@@ -14,37 +14,205 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private let questionsAmount: Int = 10 // количество вопросов квиза
     private var questionFactory: QuestionFactoryProtocol? // фабрика вопросов, через композицию
     private var currentQuestion: QuizQuestion? // текущий вопрос
+    private var alertPresenter: AlertPresenterPorotocol?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         imageVew.layer.cornerRadius = 20
-        
         questionFactory = QuestionFactory(delegate: self)
-        
+        alertPresenter = AlertPresenter(viewController: self) // rename to delegate
         questionFactory?.requestNextQuestion()
-//        if let firstQuestion = questionFactory.requestNextQuestion() {
-//            currentQuestion = firstQuestion
-//            let viewModel = convert(model: firstQuestion)
-//            show(quiz: viewModel)
+        
+        // MARK: - Inception.json serialize (homework)
+        var documentURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let file = "inception.json"
+        documentURL.appendPathComponent(file)
+        
+        var jsonString = try? String(contentsOf: documentURL)
+        print(jsonString!)
+        
+        // MARK: - serialization from file
+//        func getMovie(from jsonString: String) -> Movie? {
+//            var movie: Movie? = nil
+//
+//            do {
+//                guard let data = jsonString.data(using: .utf8) else {
+//                    return nil
+//                }
+//
+//                let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+//
+//                guard let json = json,
+//                      let id = json["id"] as? String,
+//                      let title = json["title"] as? String,
+//                      let jsonYear = json["year"] as? String,
+//                      let year = Int(jsonYear),
+//                      let image = json["image"] as? String,
+//                      let releaseDate = json["releaseDate"] as? String,
+//                      let jsonRuntimeMins = json["runtimeMins"] as? String,
+//                      let runtimeMins = Int(jsonRuntimeMins),
+//                      let directors = json["directors"] as? String,
+//                      let actorList = json["actorList"] as? [Any] else {
+//                    return nil
+//                }
+//
+//                var actors: [Actor] = []
+//
+//                for actor in actorList {
+//                    guard let actor = actor as? [String: Any],
+//                          let id = actor["id"] as? String,
+//                          let image = actor["image"] as? String,
+//                          let name = actor["name"] as? String,
+//                          let asCharacter = actor["asCharacter"] as? String else {
+//                        return nil
+//                    }
+//                    let mainActor = Actor(id: id,
+//                                          image: image,
+//                                          name: name,
+//                                          asCharacter: asCharacter)
+//                    actors.append(mainActor)
+//                }
+//                movie = Movie(id: id,
+//                              title: title,
+//                              year: year,
+//                              image: image,
+//                              releaseDate: releaseDate,
+//                              runtimeMins: runtimeMins,
+//                              directors: directors,
+//                              actorList: actors)
+//            } catch {
+//                print("Failed to parse: \(jsonString)")
+//            }
+//            return movie
 //        }
-//        let fisrtQuestion = questions[currentQuestionIndex]
-//        let firstViewModel = convert(model: fisrtQuestion)
-//        show(quiz: firstViewModel)
+        
+        // MARK: - protocol Codable
+        func getMovie(from jsonString: String) -> Movie? {
+            guard let data = jsonString.data(using: .utf8) else { return nil }
+            do {
+                let movie = try JSONDecoder().decode(Movie.self, from: data)
+                return movie
+            } catch {
+                print("Failed to parse: \(error.localizedDescription)")
+            }
+            return nil
+        }
+        
+        
+        
+//        // MARK: - FileManager
+//        print(NSHomeDirectory())
+//        UserDefaults.standard.set(true, forKey: "viewDidLoad")
+//        print(Bundle.main.bundlePath)
+//
+//        var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+//        print(documentsURL)
+//
+//        let fileNAme = "text.swift"
+//        documentsURL.appendPathComponent(fileNAme)
+//        print(documentsURL.path)
+//
+//
+//        if !FileManager.default.fileExists(atPath: documentsURL.path) {
+//            let hello = "Hello wolrd!"
+//            let data = hello.data(using: .utf8)
+//
+//            FileManager.default.createFile(atPath: documentsURL.path, contents: data)
+//        }
+//
+//        // Errors
+//        enum FileManagerError: Error {
+//            case fileDoesntExist
+//        }
+//
+//        func stringRead(from documentURL: URL) throws -> String {
+//            if !FileManager.default.fileExists(atPath: documentURL.path) {
+//                throw FileManagerError.fileDoesntExist
+//            }
+//            return try String(contentsOf: documentURL)
+//        }
+//
+//        try! FileManager.default.removeItem(atPath: documentsURL.path) // or '?'
+//
+//        // example
+//        var str = ""
+//        do {
+//            str = try stringRead(from: documentsURL)
+//        } catch FileManagerError.fileDoesntExist {
+//            print("Файл по адресу \(documentsURL.path) не существует")
+//        } catch {
+//            print("Неизвестная ошибка чтения из файла \(error)")
+//        }
+        
+        // дисериализация
+//        func getMovie(from jsonString: String) -> Movie? {
+//            var movie: Movie? = nil
+//            do {
+//                guard let data = jsonString.data(using: .utf8) else {
+//                    return nil
+//                }
+//                let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+//
+//                guard let json = json,
+//                      let id = json["id"] as? String,
+//                      let title = json["title"] as? String,
+//                      let jsonYear = json["year"] as? String,
+//                      let year = Int(jsonYear),
+//                      let image = json["image"] as? String,
+//                      let releaseDate = json["releaseDate"] as? String,
+//                      let jsonRuntimeMins = json["runtimeMins"] as? String,
+//                      let runtimeMins = Int(jsonRuntimeMins),
+//                      let directors = json["directors"] as? String,
+//                      let actorList = json["actorList"] as? [Any] else {
+//                    return nil
+//                }
+//
+//                var actors: [Actor] = []
+//
+//                for actor in actorList {
+//                    guard let actor = actor as? [String: Any],
+//                          let id = actor["id"] as? String,
+//                          let image = actor["image"] as? String,
+//                          let name = actor["name"] as? String,
+//                          let asCharacter = actor["asCharacter"] as? String else {
+//                        return nil
+//                    }
+//                    let mainActor = Actor(id: id,
+//                                          image: image,
+//                                          name: name,
+//                                          asCharacter: asCharacter)
+//                    actors.append(mainActor)
+//                }
+//                movie = Movie(id: id,
+//                              title: title,
+//                              year: year,
+//                              image: image,
+//                              releaseDate: releaseDate,
+//                              runtimeMins: runtimeMins,
+//                              directors: directors,
+//                              actorList: actors)
+//            } catch {
+//                print("Failed to parse: \(jsonString)")
+//            }
+//
+//            return movie
+//        }
     }
     
     // MARK: - QuestionFactoryDelegate
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question else {
-            return
-        }
-        
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
-        }
-    }
+//    func didReceiveNextQuestion(question: QuizQuestion?) {
+//        guard let question else {
+//            return
+//        }
+//
+//        currentQuestion = question
+//        let viewModel = convert(model: question)
+//        DispatchQueue.main.async { [weak self] in
+//            self?.show(quiz: viewModel)
+//        }
+//    }
     
     // MARK: - Actions
     @IBAction private func yesButtonClicked(_ sender: Any) {
@@ -84,32 +252,39 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // приватный метод показа результата
     private func show(quiz result: QuizResultsViewModel) {
-        // создаём объекты всплывающего окна
-        let alert = UIAlertController(
-            title: result.title,
-            message: result.text,
-            preferredStyle: .alert)
         
-        // константа с кнопкой для системного алерта
-        let action = UIAlertAction(title: "Сыграть ещё раз", style: .default) { [weak self] _ in
-            guard let self else { return }
-            // обнуляем индекс и результат по прошлому раунду
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-            questionFactory?.requestNextQuestion()
-            // заново показываем первый вопрос
-//            let firstQuestion = self.questions[self.currentQuestionIndex]
-//            let viewModel = self.convert(model: firstQuestion)
-//            self.show(quiz: viewModel)
-            
-//            if let firstQuestion = self.questionFactory.requestNextQuestion() {
-//                self.currentQuestion = firstQuestion
-//                let viewModel = self.convert(model: firstQuestion)
-//                self.show(quiz: viewModel)
-//            }
-        }
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
+        // TODO: call aleretPresenter
+        
+        let alertModel = AlertModel(
+            title: "test",
+            message: "test1",
+            buttonText: "button",
+            buttonAction: { [weak self] in
+                guard let self else { return }
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+                questionFactory?.requestNextQuestion()
+
+            }
+        )
+        alertPresenter?.show(alertModel: alertModel)
+//        // создаём объекты всплывающего окна
+//        let alert = UIAlertController(
+//            title: result.title,
+//            message: result.text,
+//            preferredStyle: .alert)
+//
+//        // константа с кнопкой для системного алерта
+//        let action = UIAlertAction(title: "Сыграть ещё раз", style: .default) { [weak self] _ in
+//            guard let self else { return }
+//            // обнуляем индекс и результат по прошлому раунду
+//            self.currentQuestionIndex = 0
+//            self.correctAnswers = 0
+//            questionFactory?.requestNextQuestion()
+//        }
+//
+//        alert.addAction(action)
+//        self.present(alert, animated: true, completion: nil)
     }
     
     // приватный метод, который меняет цвет рамки
@@ -152,6 +327,21 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
 //                let viewModel = convert(model: nextQuestion)
 //                show(quiz: viewModel)
 //            }
+        }
+    }
+}
+
+
+extension MovieQuizViewController: QuestionFactoryDelegate {
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question else {
+            return
+        }
+
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+            self?.show(quiz: viewModel)
         }
     }
 }
