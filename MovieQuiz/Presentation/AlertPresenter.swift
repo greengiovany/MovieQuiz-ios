@@ -28,18 +28,11 @@ extension AlertPresenter {
             preferredStyle: .alert)
         
         // константа с кнопкой для системного алерта
-        let action = UIAlertAction(title: alertModel.buttonText, style: .default) { _ in
-            
+        let action = UIAlertAction(title: alertModel.buttonText, style: .default) {  _ in
             alertModel.buttonAction()
-//            // обнуляем индекс и результат по прошлому раунду
-//            self.currentQuestionIndex = 0
-//            self.correctAnswers = 0
-//            questionFactory?.requestNextQuestion()
         }
         
-        alert.addAction(action)
-        
+        alert.addAction(action) 
         viewController?.present(alert, animated: true)
-        //self.present(alert, animated: true, completion: nil)
     }
 }

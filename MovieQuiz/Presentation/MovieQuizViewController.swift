@@ -11,29 +11,32 @@ final class MovieQuizViewController: UIViewController {
     // счетчик правильных ответов
     private var correctAnswers: Int = 0
     // разделение ответственности
-    private let questionsAmount: Int = 10 // количество вопросов квиза
+    private let questionsAmount: Int = 10 // количество вопросов квиза (questionsCount)
     private var questionFactory: QuestionFactoryProtocol? // фабрика вопросов, через композицию
     private var currentQuestion: QuizQuestion? // текущий вопрос
     private var alertPresenter: AlertPresenterPorotocol?
+    private var statisticService: StatisticService?
     
-    // MARK: - Lifecycle
+    // MARK: - Lifecycle / func viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
         imageVew.layer.cornerRadius = 20
         questionFactory = QuestionFactory(delegate: self)
-        alertPresenter = AlertPresenter(viewController: self) // rename to delegate
+        alertPresenter = AlertPresenter(viewController: self)
+        statisticService = StatisticServiceImp()
         questionFactory?.requestNextQuestion()
-        
-        // MARK: - Inception.json serialize (homework)
+         
+        // MARK:  Inception.json serialize (homework)
         var documentURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let file = "inception.json"
+        let file = "top250MoviesIMDB.json"
         documentURL.appendPathComponent(file)
+        print(documentURL.path)
         
         var jsonString = try? String(contentsOf: documentURL)
         print(jsonString!)
         
-        // MARK: - serialization from file
+        // MARK:  serialization from file
 //        func getMovie(from jsonString: String) -> Movie? {
 //            var movie: Movie? = nil
 //
@@ -88,21 +91,19 @@ final class MovieQuizViewController: UIViewController {
 //            return movie
 //        }
         
-        // MARK: - protocol Codable
-        func getMovie(from jsonString: String) -> Movie? {
+        // MARK:  protocol Codable
+        func getMovie(from jsonString: String) -> Top? {
             guard let data = jsonString.data(using: .utf8) else { return nil }
             do {
-                let movie = try JSONDecoder().decode(Movie.self, from: data)
-                return movie
+                let result = try JSONDecoder().decode(Top.self, from: data)
+                return result
             } catch {
                 print("Failed to parse: \(error.localizedDescription)")
             }
             return nil
         }
-        
-        
-        
-//        // MARK: - FileManager
+
+        // MARK:  FileManager
 //        print(NSHomeDirectory())
 //        UserDefaults.standard.set(true, forKey: "viewDidLoad")
 //        print(Bundle.main.bundlePath)
@@ -251,41 +252,24 @@ final class MovieQuizViewController: UIViewController {
     }
     
     // приватный метод показа результата
-    private func show(quiz result: QuizResultsViewModel) {
-        
-        // TODO: call aleretPresenter
-        
-        let alertModel = AlertModel(
-            title: "test",
-            message: "test1",
-            buttonText: "button",
-            buttonAction: { [weak self] in
-                guard let self else { return }
-                self.currentQuestionIndex = 0
-                self.correctAnswers = 0
-                questionFactory?.requestNextQuestion()
-
-            }
-        )
-        alertPresenter?.show(alertModel: alertModel)
-//        // создаём объекты всплывающего окна
-//        let alert = UIAlertController(
-//            title: result.title,
-//            message: result.text,
-//            preferredStyle: .alert)
+//    private func show(quiz result: QuizResultsViewModel) {
+//        statisticService?.store(correct: <#T##Int#>, total: <#T##Int#>)
+//        // TODO: call aleretPresenter
 //
-//        // константа с кнопкой для системного алерта
-//        let action = UIAlertAction(title: "Сыграть ещё раз", style: .default) { [weak self] _ in
-//            guard let self else { return }
-//            // обнуляем индекс и результат по прошлому раунду
-//            self.currentQuestionIndex = 0
-//            self.correctAnswers = 0
-//            questionFactory?.requestNextQuestion()
-//        }
+//        let alertModel = AlertModel(
+//            title: "Это т раунд окончен!",
+//            message: "test1",
+//            buttonText: "Сыграть ещё раз",
+//            buttonAction: { [weak self] in
+//                guard let self else { return }
+//                self.currentQuestionIndex = 0
+//                self.correctAnswers = 0
+//                questionFactory?.requestNextQuestion()
 //
-//        alert.addAction(action)
-//        self.present(alert, animated: true, completion: nil)
-    }
+//            }
+//        )
+//        alertPresenter?.show(alertModel: alertModel)
+//    }
     
     // приватный метод, который меняет цвет рамки
     private func showAnswerResult(isCorrect: Bool) {
@@ -308,16 +292,7 @@ final class MovieQuizViewController: UIViewController {
         yesButton.isEnabled = true
         noButton.isEnabled = true
         if currentQuestionIndex == questionsAmount - 1 {
-//            let text = correctAnswers == questionsAmount ?
-//                        "Поздравляем, Вы ответили на 10 из 10!" :
-//                        "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
-            let text = "Ваш результат: \(correctAnswers)/10"
-            let viewModel = QuizResultsViewModel(
-                title: "Этот раунд окончен!",
-                text: text,
-                buttonText: "Сыграть ещё раз")
-            imageVew.layer.borderColor = UIColor(white: 1, alpha: 0).cgColor
-            show(quiz: viewModel)
+            showFinalResults()
         } else {
             imageVew.layer.borderColor = UIColor(white: 1, alpha: 0).cgColor
             currentQuestionIndex += 1
@@ -329,6 +304,39 @@ final class MovieQuizViewController: UIViewController {
 //            }
         }
     }
+    
+    private func showFinalResults() {
+        statisticService?.store(correct: correctAnswers, total: questionsAmount)
+        // TODO: call aleretPresenter
+        
+        let alertModel = AlertModel(
+            title: "Этот раунд окончен!",
+            message: makeResultMessage() ,
+            buttonText: "Сыграть ещё раз",
+            buttonAction: { [weak self] in
+                guard let self else { return }
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+                questionFactory?.requestNextQuestion()
+
+            }
+        )
+        alertPresenter?.show(alertModel: alertModel)
+    }
+    
+    private func makeResultMessage() -> String {
+        guard let statisticService = statisticService,  let bestGame = statisticService.bestGame else {
+            assertionFailure("error")
+            return ""
+        }
+        let totalplaysCountLine = "Количество сыгранных квизов: \(statisticService.gamesCount)"
+        let currentGameResultLine = "Ваш результат: \(correctAnswers) \\\(questionsAmount)"
+        let bestGameInfoLine = "Рекорд: \(bestGame.correct)\\\(bestGame.total)" + " (\(bestGame.date.dateTimeString))"
+        let averageAccuracyLine = "Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%"
+        let resultMessage = [currentGameResultLine, totalplaysCountLine, bestGameInfoLine, averageAccuracyLine].joined (separator: "\n" )
+        
+        return resultMessage
+    }
 }
 
 
@@ -338,7 +346,7 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
             return
         }
 
-        currentQuestion = question
+        currentQuestion = question // .self (?)
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
